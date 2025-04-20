@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../services/api_service.dart';
 import '../models/property.dart';
 import 'valuation_screen.dart';
+import '../debug_tools.dart';
 
 class MapScreen extends StatefulWidget {
   final LatLng initialPosition;
@@ -39,6 +40,10 @@ class _MapScreenState extends State<MapScreen> {
     _loadCustomMarker();
     _loadPropertiesNearby();
   }
+
+  void _showApiDebugTool() {
+  ApiDebugTool.testAllEndpoints(context, widget.apiService.baseUrl);
+}
   
   Future<void> _loadCustomMarker() async {
     // Could use custom marker icons in a real implementation
