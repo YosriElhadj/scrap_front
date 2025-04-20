@@ -9,7 +9,7 @@ import '../models/valuation_result.dart';
 class ApiService {
   final String baseUrl;
   
-  ApiService() : baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://172.20.10.6:5000/api';
+  ApiService() : baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://192.168.1.119:5000/api';
   
   // Get nearby properties
   Future<List<Property>> getNearbyProperties(LatLng position, {double radius = 5000, int limit = 20}) async {
