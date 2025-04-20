@@ -1,11 +1,11 @@
-// screens/map_screen.dart
+// screens/map_screen.dart - FIXED VERSION
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../services/api_service.dart';
 import '../models/property.dart';
 import 'valuation_screen.dart';
-import '../debug_tools.dart';
+import '../debug_tools.dart'; // Import the debug tools
 
 class MapScreen extends StatefulWidget {
   final LatLng initialPosition;
@@ -31,6 +31,7 @@ class _MapScreenState extends State<MapScreen> {
   double _searchRadius = 5000; // meters
   late LatLng _currentPosition;
   late BitmapDescriptor _propertyIcon;
+  int _retryCount = 0;
   
   @override
   void initState() {
@@ -42,8 +43,8 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _showApiDebugTool() {
-  ApiDebugTool.testAllEndpoints(context, widget.apiService.baseUrl);
-}
+    ApiDebugTool.testAllEndpoints(context, widget.apiService.baseUrl);
+  }
   
   Future<void> _loadCustomMarker() async {
     // Could use custom marker icons in a real implementation
@@ -61,6 +62,8 @@ class _MapScreenState extends State<MapScreen> {
     }
     
     try {
+      print('Loading properties near ${_currentPosition.latitude}, ${_currentPosition.longitude}');
+      
       final properties = await widget.apiService.getNearbyProperties(
         _currentPosition,
         radius: _searchRadius,
@@ -71,14 +74,40 @@ class _MapScreenState extends State<MapScreen> {
           _properties = properties;
           _createMarkers();
           _isLoading = false;
+          _retryCount = 0; // Reset retry count on success
         });
       }
+      
+      // Log success
+      print('Successfully loaded ${properties.length} properties');
     } catch (e) {
+      print('Error loading properties: $e');
+      
       if (mounted) {
         setState(() {
           _errorMessage = 'Error loading properties: $e';
           _isLoading = false;
         });
+        
+        // Auto-retry up to 3 times if no properties are found
+        if (_properties.isEmpty && _retryCount < 3) {
+          _retryCount++;
+          
+          print('Retrying property load (attempt $_retryCount)');
+          
+          // Show a snackbar to inform the user
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Retrying to load properties (attempt $_retryCount)'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          
+          // Wait a moment before retrying
+          Future.delayed(Duration(seconds: 2), () {
+            _loadPropertiesNearby();
+          });
+        }
       }
     }
   }
@@ -354,6 +383,12 @@ class _MapScreenState extends State<MapScreen> {
             icon: Icon(Icons.refresh),
             onPressed: _loadPropertiesNearby,
             tooltip: 'Refresh properties',
+          ),
+          // Add Debug button - only visible in debug mode
+          IconButton(
+            icon: Icon(Icons.bug_report),
+            onPressed: _showApiDebugTool,
+            tooltip: 'Debug API',
           ),
         ],
       ),
