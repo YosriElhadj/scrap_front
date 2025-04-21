@@ -1,4 +1,4 @@
-// theme/app_theme.dart - Final fixes for Flutter 3 compatibility
+// theme/app_theme.dart - Fixed for Flutter 3.27.3 compatibility
 import 'package:flutter/material.dart';
 
 class AppTheme {
@@ -55,100 +55,9 @@ class AppTheme {
     height: 1.3,
   );
 
-  // Button Styles
-  static ButtonStyle primaryButtonStyle = ElevatedButton.styleFrom(
-    backgroundColor: primaryColor,
-    foregroundColor: Colors.white,
-    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
-    elevation: 1,
-  );
-
-  static ButtonStyle secondaryButtonStyle = OutlinedButton.styleFrom(
-    foregroundColor: primaryColor,
-    backgroundColor: Colors.white,
-    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-    side: BorderSide(color: primaryColor, width: 1.5),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
-  );
-
-  static ButtonStyle textButtonStyle = TextButton.styleFrom(
-    foregroundColor: primaryColor,
-    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  );
-
-  // Card Styles
-  static BoxDecoration cardDecoration = BoxDecoration(
-    color: cardColor,
-    borderRadius: BorderRadius.circular(12),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withOpacity(0.05),
-        offset: Offset(0, 2),
-        blurRadius: 8,
-        spreadRadius: 0,
-      ),
-    ],
-  );
-
-  // Input Decoration - Converted to Theme
-  static InputDecorationTheme inputDecorationTheme = InputDecorationTheme(
-    filled: true,
-    fillColor: Colors.white,
-    hintStyle: bodySmall.copyWith(color: textLightColor.withOpacity(0.7)),
-    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: dividerColor),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: dividerColor),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: primaryColor, width: 2),
-    ),
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: errorColor, width: 1),
-    ),
-  );
-
-  // Dropdown Decoration
-  static BoxDecoration dropdownDecoration = BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: dividerColor),
-  );
-
-  // Chip Style
-  static ChipThemeData chipTheme = ChipThemeData(
-    backgroundColor: primaryLightColor,
-    disabledColor: Colors.grey.shade200,
-    selectedColor: primaryColor,
-    secondarySelectedColor: primaryDarkColor,
-    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    labelStyle: caption.copyWith(color: primaryDarkColor, fontWeight: FontWeight.w600),
-    secondaryLabelStyle: caption.copyWith(color: Colors.white),
-    brightness: Brightness.light,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
-    ),
-  );
-
-  // Helper for text formatting
-  static String capitalizeFirst(String text) {
-    if (text.isEmpty) return text;
-    return text[0].toUpperCase() + text.substring(1);
-  }
-
-  // Light Theme - Updated for Flutter 3
+  // Light Theme - Updated for Flutter 3.27.3
   static ThemeData lightTheme = ThemeData(
+    useMaterial3: false,
     primaryColor: primaryColor,
     primaryColorLight: primaryLightColor,
     primaryColorDark: primaryDarkColor,
@@ -157,11 +66,69 @@ class AppTheme {
     cardColor: cardColor,
     dividerColor: dividerColor,
     fontFamily: 'Poppins',
-    elevatedButtonTheme: ElevatedButtonThemeData(style: primaryButtonStyle),
-    outlinedButtonTheme: OutlinedButtonThemeData(style: secondaryButtonStyle),
-    textButtonTheme: TextButtonThemeData(style: textButtonStyle),
-    inputDecorationTheme: inputDecorationTheme,
-    chipTheme: chipTheme,
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        elevation: 1,
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: primaryColor,
+        backgroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        side: BorderSide(color: primaryColor, width: 1.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: primaryColor,
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      hintStyle: bodySmall.copyWith(color: textLightColor.withOpacity(0.7)),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: dividerColor),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: dividerColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: primaryColor, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: errorColor, width: 1),
+      ),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: primaryLightColor,
+      disabledColor: Colors.grey.shade200,
+      selectedColor: primaryColor,
+      secondarySelectedColor: primaryDarkColor,
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      labelStyle: caption.copyWith(color: primaryDarkColor, fontWeight: FontWeight.w600),
+      secondaryLabelStyle: caption.copyWith(color: Colors.white),
+      brightness: Brightness.light,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+    ),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -170,9 +137,9 @@ class AppTheme {
     ),
     colorScheme: ColorScheme.light(
       primary: primaryColor,
-      primaryContainer: primaryDarkColor, // Replaces primaryVariant
+      primaryContainer: primaryDarkColor,
       secondary: accentColor,
-      secondaryContainer: accentColor.withOpacity(0.8), // Darker variant for secondary
+      secondaryContainer: accentColor.withOpacity(0.8),
       surface: cardColor,
       background: backgroundLight,
       error: errorColor,
@@ -185,14 +152,26 @@ class AppTheme {
     ),
   );
 
-  // Dark Theme - Updated for Flutter 3
+  // Dark Theme - Updated for Flutter 3.27.3
   static ThemeData darkTheme = ThemeData.dark().copyWith(
+    useMaterial3: false,
     primaryColor: primaryColor,
     colorScheme: ColorScheme.dark(
       primary: primaryColor,
       secondary: accentColor,
       primaryContainer: primaryDarkColor,
       secondaryContainer: accentColor.withOpacity(0.8),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        elevation: 1,
+      ),
     ),
   );
 }

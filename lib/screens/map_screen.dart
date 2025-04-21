@@ -1,4 +1,4 @@
-// screens/map_screen.dart - Enhanced UI
+// screens/map_screen.dart - Enhanced UI with fixes
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -141,41 +141,41 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
     }
   }
   
-  void _createMarkers() {
-    final Set<Marker> markers = {};
-    
-    // Add current position marker
+void _createMarkers() {
+  final Set<Marker> markers = {};
+  
+  // Add current position marker
+  markers.add(
+    Marker(
+      markerId: MarkerId('current_position'),
+      position: _currentPosition,
+      infoWindow: InfoWindow(title: 'Your Location'),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+    ),
+  );
+  
+  // Add property markers
+  for (final property in _properties) {
     markers.add(
       Marker(
-        markerId: MarkerId('current_position'),
-        position: _currentPosition,
-        infoWindow: InfoWindow(title: 'Your Location'),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+        markerId: MarkerId(property.id),
+        position: property.location,
+        infoWindow: InfoWindow(
+          title: StringUtils.formatPrice(property.price),
+          snippet: property.address,
+        ),
+        icon: _propertyIcon,
+        onTap: () {
+          _showPropertyDetails(property);
+        },
       ),
     );
-    
-    // Add property markers
-    for (final property in _properties) {
-      markers.add(
-        Marker(
-          markerId: MarkerId(property.id),
-          position: property.location,
-          infoWindow: InfoWindow(
-            title: '\$${property.price.toStringAsFixed(0)}',
-            snippet: property.address,
-          ),
-          icon: _propertyIcon,
-          onTap: () {
-            _showPropertyDetails(property);
-          },
-        ),
-      );
-    }
-    
-    setState(() {
-      _markers = markers;
-    });
   }
+  
+  setState(() {
+    _markers = markers;
+  });
+}
   
   void _showPropertyDetails(Property property) {
     setState(() {
@@ -371,12 +371,10 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
             _buildMapButton(
               icon: Icons.my_location,
               onPressed: () async {
-                if (_currentPosition != null) {
-                  final controller = await _controller.future;
-                  controller.animateCamera(
-                    CameraUpdate.newLatLngZoom(_currentPosition, 14),
-                  );
-                }
+                final controller = await _controller.future;
+                controller.animateCamera(
+                  CameraUpdate.newLatLngZoom(_currentPosition, 14),
+                );
               },
             ),
             Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
@@ -629,7 +627,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '\${property.price.toStringAsFixed(0)}',
+                                '\$${property.price.toStringAsFixed(0)}',
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -656,7 +654,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                             StringUtils.capitalizeFirst(property.zoning!),
+                              StringUtils.capitalizeFirst(property.zoning!),
                               style: TextStyle(
                                 color: AppTheme.primaryDarkColor,
                                 fontWeight: FontWeight.w600,
@@ -678,7 +676,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                     ),
                     _buildPropertyInfoRow(
                       'Price/sq ft',
-                      property.pricePerSqFt != null ? '\${property.pricePerSqFt!.toStringAsFixed(2)}' : 'Unknown'
+                      property.pricePerSqFt != null ? '\$${property.pricePerSqFt!.toStringAsFixed(2)}' : 'Unknown'
                     ),
                     
                     SizedBox(height: 16),
@@ -727,7 +725,8 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                           },
                           child: Icon(Icons.link),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.textDarkColor, padding: EdgeInsets.symmetric(vertical: 12),
+                            foregroundColor: AppTheme.textDarkColor, 
+                            padding: EdgeInsets.symmetric(vertical: 12),
                             side: BorderSide(color: Colors.grey.shade300),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -771,6 +770,22 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
       ),
       body: Stack(
         children: [
+          // Map MUST be the first child in the stack to prevent being covered
+          GoogleMap(
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: CameraPosition(
+              target: widget.initialPosition,
+              zoom: 14,
+            ),
+            markers: _markers,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false, // Using custom buttons instead
+            onTap: _onMapTap,
+            mapToolbarEnabled: false,
+            zoomControlsEnabled: false, // Using custom controls instead
+            compassEnabled: false,
+          ),
+          
           // Search bar card
           Positioned(
             top: 16,
@@ -868,25 +883,6 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   ),
                 ],
               ),
-            ),
-          ),
-          
-          // Map
-          Positioned.fill(
-            top: 160,
-            child: GoogleMap(
-              onMapCreated: _onMapCreated,
-              initialCameraPosition: CameraPosition(
-                target: widget.initialPosition,
-                zoom: 14,
-              ),
-              markers: _markers,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false, // Using custom buttons instead
-              onTap: _onMapTap,
-              mapToolbarEnabled: false,
-              zoomControlsEnabled: false, // Using custom controls instead
-              compassEnabled: false,
             ),
           ),
           

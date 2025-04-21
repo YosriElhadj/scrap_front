@@ -1,4 +1,4 @@
-// utils/string_utils.dart
+// utils/string_utils.dart - Fixed for Flutter 3.27.3
 // Centralized string utilities to avoid extension conflicts
 
 class StringUtils {

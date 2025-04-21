@@ -1,4 +1,4 @@
-// screens/property_list_screen.dart - Enhanced UI
+// screens/property_list_screen.dart - Enhanced UI with fixes
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../services/api_service.dart';
@@ -255,6 +255,7 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
   }
 
   // Enhanced property tag with better styling
+// Fixed property tags display in property_list_screen.dart
   Widget _buildPropertyTag(String text, IconData icon) {
     return Container(
       margin: EdgeInsets.only(right: 8),
@@ -333,7 +334,7 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '\${property.price.toStringAsFixed(0)}',
+                            StringUtils.formatPrice(property.price),
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -347,21 +348,22 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
                           ),
                         ],
                       ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryLightColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          StringUtils.capitalizeFirst(property.zoning!) ?? 'Unknown',
-                          style: TextStyle(
-                            color: AppTheme.primaryDarkColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                      if (property.zoning != null)
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryLightColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            StringUtils.capitalizeFirst(property.zoning ?? 'Unknown'),
+                            style: TextStyle(
+                              color: AppTheme.primaryDarkColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   if (property.city != null || property.state != null)
@@ -405,7 +407,7 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
                           Divider(height: 16),
                           _buildPropertyInfoRow(
                             'Price/sq ft', 
-                            property.pricePerSqFt != null ? '\${property.pricePerSqFt!.toStringAsFixed(2)}' : 'Unknown'
+                            property.pricePerSqFt != null ? StringUtils.formatPricePerSqFt(property.pricePerSqFt) : 'Unknown'
                           ),
                           Divider(height: 16),
                           _buildPropertyInfoRow('Zoning', property.zoning ?? 'Unknown'),
@@ -689,46 +691,46 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
                         Row(
                           children: [
                             Expanded(
-  child: TextField(
-    decoration: InputDecoration(
-      labelText: 'Min',
-      prefixText: '\$',
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-    ),
-    keyboardType: TextInputType.number,
-    onChanged: (value) {
-      if (value.isNotEmpty) {
-        setState(() {
-          _minPrice = double.tryParse(value) ?? 0;
-        });
-      }
-    },
-  ),
-),
-SizedBox(width: 12),
-Expanded(
-  child: TextField(
-    decoration: InputDecoration(
-      labelText: 'Max',
-      prefixText: '\$',  // Fixed: Removed unnecessary escape
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-    ),
-    keyboardType: TextInputType.number,
-    onChanged: (value) {
-      if (value.isNotEmpty) {
-        setState(() {
-          _maxPrice = double.tryParse(value) ?? 1000000;
-        });
-      }
-    },
-  ),
-),
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  labelText: 'Min',
+                                  prefixText: '\$',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                ),
+                                keyboardType: TextInputType.number,
+                                onChanged: (value) {
+                                  if (value.isNotEmpty) {
+                                    setState(() {
+                                      _minPrice = double.tryParse(value) ?? 0;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  labelText: 'Max',
+                                  prefixText: '\$',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                ),
+                                keyboardType: TextInputType.number,
+                                onChanged: (value) {
+                                  if (value.isNotEmpty) {
+                                    setState(() {
+                                      _maxPrice = double.tryParse(value) ?? 1000000;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
                           ],
                         ),
                         SizedBox(height: 16),
@@ -994,189 +996,182 @@ Expanded(
     );
   }
   
-  Widget _buildEnhancedPropertyCard(Property property) {
-    return Card(
-      margin: EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        onTap: () => _showPropertyDetails(property),
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image placeholder with price tag
-            Container(
-              height: 160,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-                image: property.images?.isNotEmpty == true
-                    ? DecorationImage(
-                        image: NetworkImage(property.images!.first),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
+// Fixed _buildEnhancedPropertyCard method for property_list_screen.dart
+Widget _buildEnhancedPropertyCard(Property property) {
+  return Card(
+    margin: EdgeInsets.only(bottom: 16),
+    elevation: 2,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: InkWell(
+      onTap: () => _showPropertyDetails(property),
+      borderRadius: BorderRadius.circular(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image placeholder with price tag
+          Container(
+            height: 160,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
               ),
-              child: Stack(
-                children: [
-                  // Gradient overlay for better text readability
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                      ),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.7),
-                        ],
-                        stops: [0.6, 1.0],
-                      ),
+              image: property.images?.isNotEmpty == true
+                  ? DecorationImage(
+                      image: NetworkImage(property.images!.first),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: Stack(
+              children: [
+                // Gradient overlay for better text readability
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.7),
+                      ],
+                      stops: [0.6, 1.0],
                     ),
                   ),
-                  
-                  // Property placeholder icon
-                  Center(
-                    child: Icon(
-                      Icons.landscape,
-                      size: 48,
-                      color: Colors.white.withOpacity(0.7),
+                ),
+                
+                // Property placeholder icon
+                Center(
+                  child: Icon(
+                    Icons.landscape,
+                    size: 48,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+                
+                // Price tag
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  child: Text(
+                    StringUtils.formatPrice(property.price),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          offset: Offset(0, 1),
+                          blurRadius: 3,
+                          color: Colors.black.withOpacity(0.5),
+                        ),
+                      ],
                     ),
                   ),
-                  
-                  // Price tag
+                ),
+                
+                // Zoning badge
+                if (property.zoning != null)
                   Positioned(
-                    bottom: 12,
-                    left: 12,
-                    child: Text(
-                      '\${property.price.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 1),
-                            blurRadius: 3,
-                            color: Colors.black.withOpacity(0.5),
-                          ),
-                        ],
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        StringUtils.capitalizeFirst(property.zoning!),
+                        style: TextStyle(
+                          color: AppTheme.primaryDarkColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ),
-                  
-                  // Zoning badge
-                 if (property.zoning != null)
-  Positioned(
-    top: 12,
-    right: 12,
-    child: Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        StringUtils.capitalizeFirst(property.zoning!),
-        style: TextStyle(
-          color: AppTheme.primaryDarkColor,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
+              ],
+            ),
+          ),
+          
+          // Property details
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Address
+                Text(
+                  property.address,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textDarkColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (property.city != null || property.state != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '${property.city ?? ""}, ${property.state ?? ""} ${property.zipCode ?? ""}',
+                      style: TextStyle(
+                        color: AppTheme.textLightColor,
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                SizedBox(height: 12),
+                
+                // Property tags
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (property.area != null)
+                      _buildPropertyTag(
+                        StringUtils.formatArea(property.area),
+                        Icons.straighten,
+                      ),
+                    if (property.pricePerSqFt != null)
+                      _buildPropertyTag(
+                        StringUtils.formatPricePerSqFt(property.pricePerSqFt),
+                        Icons.attach_money,
+                      ),
+                    if (property.features.nearWater)
+                      _buildPropertyTag(
+                        'Near Water',
+                        Icons.water,
+                      ),
+                    if (property.features.roadAccess)
+                      _buildPropertyTag(
+                        'Road Access',
+                        Icons.add_road,
+                      ),
+                    if (property.features.utilities)
+                      _buildPropertyTag(
+                        'Utilities',
+                        Icons.power,
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     ),
-  ),
-                ],
-              ),
-            ),
-            
-            // Property details
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Address
-                  Text(
-                    property.address,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textDarkColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (property.city != null || property.state != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        '${property.city ?? ""}, ${property.state ?? ""} ${property.zipCode ?? ""}',
-                        style: TextStyle(
-                          color: AppTheme.textLightColor,
-                          fontSize: 14,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  SizedBox(height: 12),
-                  
-                  // Property tags
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      if (property.area != null)
-                        _buildPropertyTag(
-                          '${property.area!.toStringAsFixed(0)} sq ft',
-                          Icons.straighten,
-                        ),
-                      if (property.pricePerSqFt != null)
-                        _buildPropertyTag(
-                          '\${property.pricePerSqFt!.toStringAsFixed(2)}/sq ft',
-                          Icons.attach_money,
-                        ),
-                      if (property.features.nearWater)
-                        _buildPropertyTag(
-                          'Near Water',
-                          Icons.water,
-                        ),
-                      if (property.features.roadAccess)
-                        _buildPropertyTag(
-                          'Road Access',
-                          Icons.add_road,
-                        ),
-                      if (property.features.utilities)
-                        _buildPropertyTag(
-                          'Utilities',
-                          Icons.power,
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  );
 }
-
-// Extension to capitalize first letter of string
-extension StringExtension on String {
-  String capitalizeFirst() {
-    if (this.isEmpty) return this;
-    return this[0].toUpperCase() + this.substring(1);
-  }
 }

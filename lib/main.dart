@@ -1,4 +1,4 @@
-// main.dart - Enhanced UI
+// main.dart - Fixed for Flutter 3.27.3
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -11,7 +11,7 @@ import 'screens/property_list_screen.dart';
 import 'screens/valuation_screen.dart';
 import 'screens/map_screen.dart';
 import 'services/api_service.dart';
-import 'theme/app_theme.dart'; // New theme file
+import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +27,7 @@ class LandValueApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, // Remove debug banner
       theme: AppTheme.lightTheme, // Use custom theme
       darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.light, // Force light theme for consistency
       home: HomePage(),
     );
   }
@@ -152,7 +153,7 @@ class _HomePageState extends State<HomePage> {
                   child: Icon(
                     Icons.map,
                     size: 48,
-                    color: Theme.of(context).primaryColor,
+                    color: AppTheme.primaryColor,
                   ),
                 ),
                 SizedBox(height: 24),
@@ -253,7 +254,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
+                    backgroundColor: AppTheme.primaryColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -269,7 +270,9 @@ class _HomePageState extends State<HomePage> {
     
     // Enhanced main screen with bottom navigation
     return Scaffold(
-      body: _screens.isNotEmpty ? _screens[_selectedIndex] : Container(),
+      body: _screens.isNotEmpty && _selectedIndex < _screens.length 
+          ? _screens[_selectedIndex] 
+          : Container(),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -301,17 +304,19 @@ class _HomePageState extends State<HomePage> {
                 label: 'Valuation',
               ),
             ],
-            currentIndex: _selectedIndex,
-            selectedItemColor: Theme.of(context).primaryColor,
+            currentIndex: _selectedIndex < _screens.length ? _selectedIndex : 0,
+            selectedItemColor: AppTheme.primaryColor,
             unselectedItemColor: Colors.grey.shade600,
             showUnselectedLabels: true,
             backgroundColor: Colors.white,
             elevation: 0,
             type: BottomNavigationBarType.fixed,
             onTap: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
+              if (index < _screens.length) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              }
             },
           ),
         ),
