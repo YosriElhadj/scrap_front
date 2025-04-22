@@ -1,4 +1,4 @@
-// services/api_service.dart - FIXED VERSION
+// lib/services/api_service.dart - OPTIMIZED VERSION
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -9,9 +9,9 @@ import '../models/valuation_result.dart';
 class ApiService {
   final String baseUrl;
   
-  ApiService() : baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://192.168.100.4:5000/api';
+  ApiService() : baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://172.20.10.6:5000/api';
   
-  // Get nearby properties with comprehensive error handling and debugging
+  // Get nearby properties with better error handling
   Future<List<Property>> getNearbyProperties(LatLng position, {double radius = 5000, int limit = 20}) async {
     try {
       print('Fetching nearby properties at: ${position.latitude}, ${position.longitude}');
@@ -21,101 +21,34 @@ class ApiService {
       final response = await http.get(Uri.parse(url));
       
       print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body.substring(0, min(150, response.body.length))}...');
       
       if (response.statusCode == 200) {
-        // Detailed parsing with debug info
         try {
-          final dynamic jsonResponse = json.decode(response.body);
-          print('Decoded response type: ${jsonResponse.runtimeType}');
+          final List<dynamic> jsonResponse = json.decode(response.body);
+          print('Received ${jsonResponse.length} properties from API');
           
-          // Handle empty responses better
-          if (jsonResponse == null) {
-            print('Warning: Null response from API');
+          if (jsonResponse.isEmpty) {
+            print('Warning: Empty array from API');
             return [];
           }
           
-          if (jsonResponse is List) {
-            if (jsonResponse.isEmpty) {
-              print('Warning: Empty array from API');
-              return [];
-            }
-            
-            print('Response is a List with ${jsonResponse.length} items');
-            print('First item keys: ${jsonResponse[0]?.keys?.toList() ?? "null item"}');
-            
-            // Try to create properties from the list
-            final properties = jsonResponse
-                .where((item) => item != null)
-                .map((json) {
-                  try {
-                    return Property.fromJson(json);
-                  } catch (e) {
-                    print('Error parsing property: $e');
-                    print('Property JSON: ${json.toString().substring(0, min(150, json.toString().length))}');
-                    return null;
-                  }
-                })
-                .where((prop) => prop != null)
-                .cast<Property>()
-                .toList();
-                
-            print('Successfully parsed ${properties.length} properties');
-            return properties;
-          } else if (jsonResponse is Map) {
-            print('Response is a Map with keys: ${jsonResponse.keys.toList()}');
-            
-            // Check for different possible property list locations
-            List<dynamic>? propList;
-            
-            if (jsonResponse.containsKey('data') && jsonResponse['data'] is List) {
-              propList = jsonResponse['data'];
-              print('Found properties in "data" field');
-            } else if (jsonResponse.containsKey('properties') && jsonResponse['properties'] is List) {
-              propList = jsonResponse['properties'];
-              print('Found properties in "properties" field');
-            } else if (jsonResponse.containsKey('success') && jsonResponse['success'] == true) {
-              // Try to find any list in the response
-              for (var key in jsonResponse.keys) {
-                if (jsonResponse[key] is List && (jsonResponse[key] as List).isNotEmpty) {
-                  propList = jsonResponse[key];
-                  print('Found potential properties in "$key" field');
-                  break;
+          // Try to create properties from the list
+          final properties = jsonResponse
+              .where((item) => item != null)
+              .map((json) {
+                try {
+                  return Property.fromJson(json);
+                } catch (e) {
+                  print('Error parsing property: $e');
+                  return null;
                 }
-              }
-            }
-            
-            if (propList != null) {
-              if (propList.isEmpty) {
-                print('Warning: Empty property list field');
-                return [];
-              }
+              })
+              .where((prop) => prop != null)
+              .cast<Property>()
+              .toList();
               
-              // Try to create properties from the list
-              final properties = propList
-                  .where((item) => item != null)
-                  .map((json) {
-                    try {
-                      return Property.fromJson(json);
-                    } catch (e) {
-                      print('Error parsing property: $e');
-                      return null;
-                    }
-                  })
-                  .where((prop) => prop != null)
-                  .cast<Property>()
-                  .toList();
-                  
-              print('Successfully parsed ${properties.length} properties from field');
-              return properties;
-            } else {
-              print('No property list field found in response');
-              throw Exception('Could not find properties in API response');
-            }
-          } else {
-            print('Unexpected response type: ${jsonResponse.runtimeType}');
-            throw Exception('Unexpected API response type: ${jsonResponse.runtimeType}');
-          }
+          print('Successfully parsed ${properties.length} properties');
+          return properties;
         } catch (parseError) {
           print('Error parsing response JSON: $parseError');
           throw Exception('Failed to parse API response: $parseError');
@@ -147,7 +80,6 @@ class ApiService {
       
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        print('Response keys: ${jsonResponse is Map ? jsonResponse.keys.toList() : "Not a Map"}');
         
         // Create a result with fallbacks
         Map<String, dynamic> result = {};
@@ -244,7 +176,6 @@ class ApiService {
       if (response.statusCode == 200) {
         try {
           final jsonResponse = json.decode(response.body);
-          print('Response keys: ${jsonResponse is Map ? jsonResponse.keys.toList() : "Not a Map"}');
           
           if (jsonResponse is Map<String, dynamic>) {
             // Look for the actual valuation data
@@ -290,34 +221,6 @@ class ApiService {
       }
     } catch (e) {
       print('Error in estimateLandValue: $e');
-      rethrow;
-    }
-  }
-  
-  // Initiate scraping for a location
-  Future<Map<String, dynamic>> scrapeLandListings(String location) async {
-    try {
-      print('Initiating scrape for location: $location');
-      
-      final response = await http.post(
-        Uri.parse('$baseUrl/scrape/listings'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'location': location,
-        }),
-      );
-      
-      print('Response status code: ${response.statusCode}');
-      
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        final errorBody = response.body;
-        print('API error response (${response.statusCode}): $errorBody');
-        throw Exception('Failed to initiate scraping: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error in scrapeLandListings: $e');
       rethrow;
     }
   }
